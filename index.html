@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5MXB4EHR8X"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-5MXB4EHR8X');
+    </script>
+    <title>declock</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #333;
+            color: #fff;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #patternCanvas {
+            z-index: -1;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="patternCanvas" width="800" height="800"></canvas>
+    <canvas id="clockCanvas" width="400" height="400"></canvas>
+
+    <script>
+        const clockCanvas = document.getElementById('clockCanvas');
+        const patternCanvas = document.getElementById('patternCanvas');
+        const clockCtx = clockCanvas.getContext('2d');
+        const patternCtx = patternCanvas.getContext('2d');
+        const clockSize = clockCanvas.width / 2;
+        clockCtx.translate(clockSize, clockSize);
+        let lastSecond = -1;
+
+        function drawClock() {
+            clockCtx.clearRect(-clockSize, -clockSize, clockCanvas.width, clockCanvas.height);
+            drawFace(clockCtx, clockSize - 20);
+            drawNumbers(clockCtx, clockSize - 20);
+            const second = drawHands(clockCtx, clockSize - 20);
+            if (second !== lastSecond) {
+                drawRandomPattern(patternCtx, patternCanvas.width, patternCanvas.height);
+                lastSecond = second;
+            }
+            requestAnimationFrame(drawClock);
+        }
+
+        function drawFace(ctx, radius) {
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 10;
+            ctx.stroke();
+        }
+
+        function drawNumbers(ctx, radius) {
+            const numRadius = radius - 30;
+            ctx.font = '16px Arial';
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center';
+            for (let num = 1; num <= 12; num++) {
+                const ang = num * Math.PI / 6;
+                ctx.rotate(ang);
+                ctx.translate(0, -numRadius);
+                ctx.rotate(-ang);
+                ctx.fillText(num.toString(), 0, 0);
+                ctx.rotate(ang);
+                ctx.translate(0, numRadius);
+                ctx.rotate(-ang);
+            }
+        }
+
+        function drawHands(ctx, radius) {
+            const now = new Date();
+            let hour = now.getHours();
+            let minute = now.getMinutes();
+            let second = now.getSeconds();
+
+            hour = hour % 12;
+            hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60));
+            drawHand(ctx, hour, radius * 0.5, 7);
+
+            minute = (minute * Math.PI / 30);
+            drawHand(ctx, minute, radius * 0.8, 5);
+
+            second = (second * Math.PI / 30);
+            drawHand(ctx, second, radius * 0.9, 2, 'red');
+
+            return now.getSeconds();
+        }
+
+        function drawHand(ctx, pos, length, width, color = 'black') {
+            ctx.beginPath();
+            ctx.lineWidth = width;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = color;
+            ctx.moveTo(0, 0);
+            ctx.rotate(pos);
+            ctx.lineTo(0, -length);
+            ctx.stroke();
+            ctx.rotate(-pos);
+        }
+
+        function drawRandomPattern(ctx, width, height) {
+            ctx.clearRect(0, 0, width, height);
+            for (let i = 0; i < 50; i++) {
+                ctx.beginPath();
+                const startX = Math.random() * width;
+                const startY = Math.random() * height;
+                const endX = Math.random() * width;
+                const endY = Math.random() * height;
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.strokeStyle = `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.random()})`;
+                ctx.lineWidth = Math.random() * 5;
+                ctx.stroke();
+            }
+        }
+
+        requestAnimationFrame(drawClock);
+    </script>
+</body>
+
+</html>
